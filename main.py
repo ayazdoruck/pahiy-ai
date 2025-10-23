@@ -14,8 +14,8 @@ CORS(app)
 # -----------------------------
 # Ayarlar
 # -----------------------------
-API_KEY = os.environ.get("GENAI_API_KEY", "AIzaSyAqV8zpNrGq_ZWETVNjduaTFyvdbOaidjA")
-MODEL = os.environ.get("GENAI_MODEL", "gemini-2.0-flash-lite")
+API_KEY = os.environ.get("GENAI_API_KEY")
+MODEL = os.environ.get("GENAI_MODEL")
 
 # Google Generative AI yapılandırması
 if API_KEY:
