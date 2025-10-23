@@ -17,7 +17,11 @@ CORS(app)
 API_KEY = os.environ.get("GENAI_API_KEY", "AIzaSyAqV8zpNrGq_ZWETVNjduaTFyvdbOaidjA")
 MODEL = os.environ.get("GENAI_MODEL", "gemini-2.0-flash-lite")
 
-client = genai.Client(api_key=API_KEY) if API_KEY else None
+# Google Generative AI yapılandırması
+if API_KEY:
+    genai.configure(api_key=API_KEY)
+else:
+    print("❌ Uyarı: GENAI_API_KEY tanımlı değil!")
 
 # -----------------------------
 # KONUŞMA HAFIZASI SİSTEMİ
@@ -44,6 +48,7 @@ class ConversationManager:
                 "timestamp": datetime.now().isoformat()
             })
             
+            # Hafıza sınırlaması (son 20 mesaj)
             if len(self.conversations[session_id]) > 20:
                 self.conversations[session_id] = self.conversations[session_id][-20:]
     
@@ -60,32 +65,29 @@ conversation_manager = ConversationManager()
 def format_ai_response(text):
     """AI yanıtını formatla: markdown ve kod bloklarını HTML'e çevir"""
     
-    # 1. Kod bloklarını işle
     def format_code_block(match):
         language = match.group(1) or 'text'
         code_content = match.group(2)
-        
-        # Orijinal kod içeriğini data attribute olarak sakla
         original_code = code_content
         
-        # Görüntüleme için HTML formatla
         display_code = html.escape(code_content)
-        display_code = display_code.replace(' ', '&nbsp;')
-        display_code = display_code.replace('\n', '<br>')
+        display_code = display_code.replace(' ', '&nbsp;').replace('\n', '<br>')
         
-        return f'<div class="code-block" data-original-code="{html.escape(original_code)}"><div class="code-header"><span class="language">{language}</span><button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Kopyala</button></div><pre><code>{display_code}</code></pre></div>'
+        return f'''
+        <div class="code-block" data-original-code="{html.escape(original_code)}">
+            <div class="code-header">
+                <span class="language">{language}</span>
+                <button class="copy-btn" onclick="copyCode(this)">
+                    <i class="fas fa-copy"></i> Kopyala
+                </button>
+            </div>
+            <pre><code>{display_code}</code></pre>
+        </div>'''
 
     text = re.sub(r'```(\w+)?\s*\n?(.*?)\n?```', format_code_block, text, flags=re.DOTALL)
-    
-    # 2. Bold (**text**) işle
     text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
-    
-    # 3. Italic (*text*) işle
     text = re.sub(r'\*(.*?)\*', r'<em>\1</em>', text)
-    
-    # 4. Satır sonlarını <br> ile değiştir
     text = text.replace('\n', '<br>')
-    
     return text
 
 # -----------------------------
@@ -93,7 +95,7 @@ def format_ai_response(text):
 # -----------------------------
 def build_prompt_with_history(user_input, conversation_history):
     system_prompt = """Senin adın Pahiy AI. Ayazdoruck tarafından geliştirilmiş küçük bir dil modelisin ve 1.0 flash sürümüsün. Dostane, yardımsever ve samimi bir asistantsın. 
-Türkçe konuşuyorsun.Emoji kullanmıyorsun, kısa ve net, yani kullanıcı ne isterse o cevabı veriyorsun. Kullanıcıya hizmet etmek için yaratıldığın için elinden geldiğince çok profesyonelce kod yazma işlerini vs. yap. Kullanıcıyla yaptığın önceki konuşmaları DİKKATLE takip et ve ona göre cevap ver.
+Türkçe konuşuyorsun. Emoji kullanmıyorsun, kısa ve net, yani kullanıcı ne isterse o cevabı veriyorsun. Kullanıcıya hizmet etmek için yaratıldığın için elinden geldiğince çok profesyonelce kod yazma işlerini vs. yap. Kullanıcıyla yaptığın önceki konuşmaları DİKKATLE takip et ve ona göre cevap ver.
 Eğer kullanıcı daha önce bir bilgi paylaştıysa (isim, plan, tarih, yer vs.), bunları hatırla ve kullan.
 Kısa, net ve bağlama uygun cevaplar ver. Samimi ve sıcak bir dil kullan.
 
@@ -107,24 +109,17 @@ Kısa, net ve bağlama uygun cevaplar ver. Samimi ve sıcak bir dil kullan.
 
     conversation_text = "ÖNCEKİ KONUŞMA GEÇMİŞİ:\n"
     for msg in conversation_history[-10:]:
-        if msg["role"] == "user":
-            conversation_text += f"Kullanıcı: {msg['content']}\n"
-        elif msg["role"] == "ai":
-            conversation_text += f"Sen: {msg['content']}\n"
-    
-    if not conversation_history:
-        conversation_text += "Henüz konuşma yok.\n"
+        role_prefix = "Kullanıcı" if msg["role"] == "user" else "Sen"
+        conversation_text += f"{role_prefix}: {msg['content']}\n"
     
     conversation_text += f"\nŞİMDİKİ SORU: {user_input}\nCEVAP:"
-    
-    full_prompt = f"{system_prompt}\n\n{conversation_text}"
-    return full_prompt
+    return f"{system_prompt}\n\n{conversation_text}"
 
 def query_ai(user_input, session_id):
     conversation_history = conversation_manager.get_conversation(session_id)
     conversation_manager.add_message(session_id, "user", user_input)
     
-    if not client:
+    if not API_KEY:
         error_msg = "❌ API anahtarı yapılandırılmamış."
         conversation_manager.add_message(session_id, "ai", error_msg)
         return error_msg
@@ -132,10 +127,8 @@ def query_ai(user_input, session_id):
     prompt = build_prompt_with_history(user_input, conversation_history)
     
     try:
-        response = client.models.generate_content(
-            model=MODEL,
-            contents=prompt
-        )
+        model = genai.GenerativeModel(MODEL)
+        response = model.generate_content(prompt)
         answer = response.text.strip()
         formatted_answer = format_ai_response(answer)
         conversation_manager.add_message(session_id, "ai", formatted_answer)
@@ -161,18 +154,15 @@ def serve_static(path):
 def chat():
     try:
         data = request.get_json()
-        
         if not data or 'message' not in data or 'session_id' not in data:
             return jsonify({'error': 'Geçersiz veri'}), 400
         
         user_message = data['message']
         session_id = data['session_id']
-        
         if not user_message.strip():
             return jsonify({'error': 'Mesaj boş olamaz'}), 400
         
         ai_response = query_ai(user_message, session_id)
-        
         return jsonify({
             'response': ai_response,
             'session_id': session_id,
@@ -187,14 +177,8 @@ def clear_memory():
     try:
         data = request.get_json()
         session_id = data.get('session_id', 'default')
-        
         conversation_manager.clear_conversation(session_id)
-        
-        return jsonify({
-            'message': 'Konuşma geçmişi temizlendi',
-            'session_id': session_id
-        })
-        
+        return jsonify({'message': 'Konuşma geçmişi temizlendi', 'session_id': session_id})
     except Exception as e:
         return jsonify({'error': f'Sunucu hatası: {str(e)}'}), 500
 
@@ -202,14 +186,8 @@ def clear_memory():
 def get_history():
     try:
         session_id = request.args.get('session_id', 'default')
-        conversation_history = conversation_manager.get_conversation(session_id)
-        
-        return jsonify({
-            'history': conversation_history,
-            'session_id': session_id,
-            'total_messages': len(conversation_history)
-        })
-        
+        history = conversation_manager.get_conversation(session_id)
+        return jsonify({'history': history, 'session_id': session_id, 'total_messages': len(history)})
     except Exception as e:
         return jsonify({'error': f'Sunucu hatası: {str(e)}'}), 500
 
