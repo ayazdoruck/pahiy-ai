@@ -3,7 +3,7 @@ from flask_cors import CORS
 import os
 import json
 from datetime import datetime
-from google import genai
+import google.generativeai as genai
 import threading
 import re
 import html
