@@ -3,7 +3,7 @@ from flask_cors import CORS
 import os
 import json
 from datetime import datetime
-from google import genai
+import google as genai
 import threading
 import re
 import html
@@ -17,7 +17,8 @@ CORS(app)
 API_KEY = os.environ.get("GENAI_API_KEY", "AIzaSyAqV8zpNrGq_ZWETVNjduaTFyvdbOaidjA")
 MODEL = os.environ.get("GENAI_MODEL", "gemini-2.0-flash-lite")
 
-client = genai.Client(api_key=API_KEY) if API_KEY else None
+# Google AI client'ı yapılandır
+genai.configure(api_key=API_KEY)
 
 # -----------------------------
 # KONUŞMA HAFIZASI SİSTEMİ
@@ -124,7 +125,7 @@ def query_ai(user_input, session_id):
     conversation_history = conversation_manager.get_conversation(session_id)
     conversation_manager.add_message(session_id, "user", user_input)
     
-    if not client:
+    if not API_KEY:
         error_msg = "❌ API anahtarı yapılandırılmamış."
         conversation_manager.add_message(session_id, "ai", error_msg)
         return error_msg
@@ -132,10 +133,8 @@ def query_ai(user_input, session_id):
     prompt = build_prompt_with_history(user_input, conversation_history)
     
     try:
-        response = client.models.generate_content(
-            model=MODEL,
-            contents=prompt
-        )
+        model = genai.GenerativeModel(MODEL)
+        response = model.generate_content(prompt)
         answer = response.text.strip()
         formatted_answer = format_ai_response(answer)
         conversation_manager.add_message(session_id, "ai", formatted_answer)
