@@ -1,4 +1,4 @@
-const BACKEND_URL = 'web-production-ba19b.up.railway.app';
+const BACKEND_URL = 'https://web-production-ba19b.up.railway.app';
 
 let conversationHistory = [];
 let currentSessionId = generateSessionId();
