@@ -42,7 +42,7 @@ def send_verification_email(email: str, username: str, token: str) -> bool:
             resend.api_key = resend_key
             
             resend.Emails.send({
-                "from": "Pahiy AI <onboarding@resend.dev>",
+                "from": "Pahiy AI <noreply@dockie.site>",
                 "to": email,
                 "subject": "Pahiy AI - Email Doğrulama",
                 "html": f"""
