@@ -2,6 +2,12 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
 }
 
 :root {
@@ -28,6 +34,10 @@ body {
     color: var(--text-primary);
     transition: all 0.3s ease;
     overflow: hidden;
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    touch-action: manipulation;
 }
 
 .app-container {
@@ -781,6 +791,8 @@ body {
 }
 
 /* ================== RESPONSIVE ================== */
+
+/* Tablet ve küçük ekranlar */
 @media (max-width: 768px) {
     .sidebar {
         position: fixed;
@@ -790,6 +802,7 @@ body {
         transform: translateX(-100%);
         z-index: 200;
         box-shadow: none;
+        width: 280px;
     }
 
     .sidebar.show {
@@ -808,6 +821,7 @@ body {
     .message {
         max-width: 90%;
         padding: 16px 18px;
+        font-size: 15px;
     }
 
     .input-container {
@@ -834,6 +848,171 @@ body {
     
     .welcome-message p {
         font-size: 16px;
+    }
+}
+
+/* Mobile telefonlar (iPhone, Android) */
+@media (max-width: 480px) {
+    html {
+        font-size: 14px;
+    }
+
+    .app-container {
+        height: 100vh;
+        height: -webkit-fill-available;
+    }
+
+    body {
+        height: 100vh;
+        height: -webkit-fill-available;
+    }
+
+    .sidebar {
+        width: 85%;
+        max-width: 320px;
+    }
+
+    .mobile-header {
+        padding: 12px 16px;
+        height: 56px;
+    }
+
+    .mobile-header h1 {
+        font-size: 18px;
+    }
+
+    .messages-container {
+        padding: 12px;
+        height: calc(100vh - 160px);
+        height: calc(-webkit-fill-available - 160px);
+    }
+
+    .message {
+        padding: 12px 14px;
+        font-size: 14px;
+        max-width: 85%;
+    }
+
+    .message.user {
+        max-width: 90%;
+    }
+
+    .message pre {
+        font-size: 13px;
+        padding: 10px;
+    }
+
+    .input-container {
+        padding: 12px;
+        padding-bottom: env(safe-area-inset-bottom, 12px);
+    }
+
+    .input-wrapper {
+        padding: 10px 12px;
+    }
+
+    .input-wrapper textarea {
+        font-size: 15px;
+        padding: 8px 0;
+    }
+
+    .input-wrapper button {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+
+    .modal-content {
+        width: 90%;
+        padding: 20px;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .modal-content h2 {
+        font-size: 20px;
+    }
+
+    .form-group input {
+        font-size: 15px;
+        padding: 12px;
+    }
+
+    .btn-primary {
+        padding: 12px;
+        font-size: 15px;
+    }
+
+    .chat-item {
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    .welcome-message h2 {
+        font-size: 20px;
+    }
+
+    .welcome-message p {
+        font-size: 14px;
+    }
+
+    .new-chat-btn {
+        font-size: 14px;
+        padding: 12px 20px;
+    }
+}
+
+/* iOS Safari özel düzeltmeler */
+@supports (-webkit-touch-callout: none) {
+    .app-container {
+        height: -webkit-fill-available;
+    }
+
+    body {
+        height: -webkit-fill-available;
+    }
+
+    .messages-container {
+        height: calc(-webkit-fill-available - 180px);
+    }
+
+    .input-container {
+        padding-bottom: max(env(safe-area-inset-bottom), 12px);
+    }
+
+    .sidebar {
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+}
+
+/* iPhone 12/13/14 Pro (390x844) */
+@media (max-width: 390px) {
+    .message {
+        max-width: 88%;
+    }
+
+    .sidebar {
+        width: 90%;
+    }
+}
+
+/* Çok küçük ekranlar (SE vb.) */
+@media (max-width: 375px) {
+    html {
+        font-size: 13px;
+    }
+
+    .mobile-header h1 {
+        font-size: 16px;
+    }
+
+    .message {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    .input-wrapper textarea {
+        font-size: 14px;
     }
 }
 

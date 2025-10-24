@@ -2,6 +2,12 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
 }
 
 :root {
@@ -24,11 +30,16 @@ body {
     background: var(--bg-primary);
     color: var(--text-primary);
     min-height: 100vh;
+    min-height: -webkit-fill-available;
     display: flex;
     justify-content: center;
     align-items: center;
     overflow: auto;
     padding: 20px 0;
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    touch-action: manipulation;
 }
 
 .auth-container {
@@ -481,5 +492,51 @@ body {
 
 @keyframes spin {
     to { transform: rotate(360deg); }
+}
+
+/* iOS Safari özel düzeltmeler */
+@supports (-webkit-touch-callout: none) {
+    body {
+        min-height: -webkit-fill-available;
+    }
+
+    .auth-container {
+        min-height: -webkit-fill-available;
+    }
+
+    .auth-box {
+        margin-bottom: env(safe-area-inset-bottom, 0px);
+    }
+}
+
+/* iPhone 12/13/14 (390px genişlik) */
+@media (max-width: 390px) {
+    html {
+        font-size: 15px;
+    }
+
+    .auth-box {
+        padding: 22px 16px;
+        max-width: 95%;
+    }
+
+    .form-group input {
+        font-size: 14px;
+    }
+}
+
+/* iPhone SE gibi küçük ekranlar */
+@media (max-width: 375px) {
+    html {
+        font-size: 14px;
+    }
+
+    .logo-text {
+        font-size: 26px;
+    }
+
+    .auth-form h2 {
+        font-size: 20px;
+    }
 }
 
