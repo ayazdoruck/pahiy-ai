@@ -32,7 +32,64 @@ def send_verification_email(email: str, username: str, token: str) -> bool:
     """
     verification_link = f"{FRONTEND_URL}/api/verify-email/{token}"
     
-    if ENVIRONMENT == "development":
+    # Resend API key varsa gerçek email gönder
+    resend_key = os.environ.get("RESEND_API_KEY")
+    
+    if resend_key:
+        # Production: Resend ile gerçek email gönder
+        try:
+            import resend
+            resend.api_key = resend_key
+            
+            resend.Emails.send({
+                "from": "Pahiy AI <onboarding@resend.dev>",
+                "to": email,
+                "subject": "Pahiy AI - Email Doğrulama",
+                "html": f"""
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <style>
+                            body {{ font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #fff; background: #000; margin: 0; padding: 0; }}
+                            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                            .header {{ background: #111; color: #fff; padding: 30px 20px; text-align: center; border-radius: 12px 12px 0 0; }}
+                            .content {{ padding: 30px 20px; background: #0a0a0a; border-left: 1px solid #333; border-right: 1px solid #333; }}
+                            .button {{ display: inline-block; padding: 14px 32px; background: #fff; color: #000; text-decoration: none; border-radius: 8px; margin: 25px 0; font-weight: 600; }}
+                            .footer {{ padding: 20px; background: #111; text-align: center; color: #666; font-size: 13px; border-radius: 0 0 12px 12px; }}
+                            .link {{ color: #888; word-break: break-all; font-size: 12px; }}
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <div class="header">
+                                <h1 style="margin: 0; font-size: 32px;">🤖 Pahiy AI</h1>
+                            </div>
+                            <div class="content">
+                                <h2 style="color: #fff; margin-top: 0;">Merhaba {username}!</h2>
+                                <p style="color: #e5e5e5;">Pahiy AI'a hoş geldiniz! 🎉</p>
+                                <p style="color: #e5e5e5;">Hesabınızı doğrulamak ve sohbete başlamak için aşağıdaki butona tıklayın:</p>
+                                <div style="text-align: center;">
+                                    <a href="{verification_link}" class="button">Email Adresimi Doğrula</a>
+                                </div>
+                                <p style="color: #999; font-size: 13px; margin-top: 30px;">Veya bu linki tarayıcınıza kopyalayın:</p>
+                                <p class="link">{verification_link}</p>
+                            </div>
+                            <div class="footer">
+                                <p style="margin: 0;">Bu link 24 saat geçerlidir.</p>
+                                <p style="margin: 10px 0 0 0;">Eğer bu işlemi siz yapmadıysanız, bu emaili görmezden gelebilirsiniz.</p>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                """
+            })
+            print(f"✅ Verification email sent to {email}")
+            return True
+        except Exception as e:
+            print(f"❌ Email send error: {e}")
+            print(f"📧 Fallback - Verification link: {verification_link}")
+            return False
+    else:
         # Development: Console'a yaz
         print("\n" + "="*60)
         print("📧 EMAIL VERIFICATION")
@@ -45,12 +102,6 @@ def send_verification_email(email: str, username: str, token: str) -> bool:
         print(f"🔗 {verification_link}\n")
         print(f"Bu link 24 saat geçerlidir.")
         print("="*60 + "\n")
-        return True
-    else:
-        # Production: Gerçek email gönder
-        # TODO: Resend veya SendGrid entegrasyonu
-        # Şimdilik log'a yaz
-        print(f"📧 Verification email sent to {email}: {verification_link}")
         return True
 
 def send_email_with_resend(email: str, username: str, token: str) -> bool:
