@@ -41,3 +41,7 @@ backups/
 .DS_Store
 Thumbs.db
 
+# Local scripts
+*.bat
+*.sh
+start_local.*
