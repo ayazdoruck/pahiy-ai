@@ -29,6 +29,8 @@ class Database:
                 username TEXT UNIQUE NOT NULL,
                 email TEXT UNIQUE NOT NULL,
                 password_hash TEXT NOT NULL,
+                email_verified INTEGER DEFAULT 0,
+                verification_token TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 last_login TIMESTAMP
             )
@@ -84,18 +86,49 @@ class Database:
             conn = self.get_connection()
             cursor = conn.cursor()
             password_hash = self.hash_password(password)
+            verification_token = secrets.token_urlsafe(32)
             
             cursor.execute('''
-                INSERT INTO users (first_name, last_name, username, email, password_hash)
-                VALUES (?, ?, ?, ?, ?)
-            ''', (first_name, last_name, username, email, password_hash))
+                INSERT INTO users (first_name, last_name, username, email, password_hash, verification_token)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (first_name, last_name, username, email, password_hash, verification_token))
             
             user_id = cursor.lastrowid
             conn.commit()
             conn.close()
-            return user_id
+            return user_id, verification_token
         except sqlite3.IntegrityError:
-            return None
+            return None, None
+    
+    def verify_email(self, token: str) -> bool:
+        """Email verification token'ı kontrol et ve onay"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                UPDATE users 
+                SET email_verified = 1, verification_token = NULL
+                WHERE verification_token = ?
+            ''', (token,))
+            
+            affected = cursor.rowcount
+            conn.commit()
+            conn.close()
+            return affected > 0
+        except:
+            return False
+    
+    def is_email_verified(self, user_id: int) -> bool:
+        """Kullanıcının emaili doğrulanmış mı?"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT email_verified FROM users WHERE id = ?', (user_id,))
+        result = cursor.fetchone()
+        conn.close()
+        
+        return result and result['email_verified'] == 1
     
     def verify_user(self, login: str, password: str) -> Optional[Dict]:
         """Kullanıcı giriş doğrulama (email veya username ile)"""

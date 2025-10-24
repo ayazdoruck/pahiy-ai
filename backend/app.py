@@ -10,6 +10,7 @@ import html
 from functools import wraps
 from database import Database
 from security_utils import rate_limit, sanitize_input, validate_email, validate_username, validate_name, log_security_event
+from email_service import send_verification_email
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "pahiy-ai-secret-key-change-in-production")
@@ -213,28 +214,22 @@ def register():
         if len(password) < 6:
             return jsonify({'error': 'Şifre en az 6 karakter olmalıdır'}), 400
         
-        user_id = db.create_user(first_name, last_name, username, email, password)
+        user_id, verification_token = db.create_user(first_name, last_name, username, email, password)
         
         if not user_id:
             log_security_event('register_failed', details={'email': email, 'reason': 'duplicate'})
             return jsonify({'error': 'Bu email veya kullanıcı adı zaten kullanılıyor'}), 400
         
-        # Oturum oluştur
-        token = db.create_session(user_id)
+        # Email doğrulama linki gönder
+        send_verification_email(email, username, verification_token)
         
         # Güvenlik logu
         log_security_event('user_registered', user_id=user_id, details={'username': username})
         
         return jsonify({
-            'message': 'Kayıt başarılı',
-            'token': token,
-            'user': {
-                'id': user_id,
-                'first_name': first_name,
-                'last_name': last_name,
-                'username': username,
-                'email': email
-            }
+            'message': 'Kayıt başarılı! Lütfen email adresinizi kontrol edin ve doğrulama linkine tıklayın.',
+            'email': email,
+            'requiresVerification': True
         })
         
     except Exception as e:
@@ -261,6 +256,14 @@ def login():
             log_security_event('login_failed', details={'login': login_input})
             return jsonify({'error': 'Kullanıcı adı/Email veya şifre hatalı'}), 401
         
+        # Email doğrulaması kontrolü
+        if not db.is_email_verified(user['id']):
+            return jsonify({
+                'error': 'Email adresiniz doğrulanmamış. Lütfen email kutunuzu kontrol edin.',
+                'requiresVerification': True,
+                'email': user['email']
+            }), 403
+        
         # Oturum oluştur
         token = db.create_session(user['id'])
         
@@ -278,6 +281,58 @@ def login():
         if ENVIRONMENT == "production":
             return jsonify({'error': 'Giriş işlemi başarısız'}), 500
         return jsonify({'error': f'Sunucu hatası: {str(e)}'}), 500
+
+@app.route('/api/verify-email/<token>', methods=['GET'])
+def verify_email(token):
+    """Email doğrulama"""
+    try:
+        if db.verify_email(token):
+            log_security_event('email_verified', details={'token': token[:10]})
+            # Frontend'e redirect
+            return send_from_directory('../frontend', 'login.html')
+        else:
+            return jsonify({'error': 'Geçersiz veya süresi dolmuş doğrulama linki'}), 400
+    except Exception as e:
+        return jsonify({'error': 'Doğrulama işlemi başarısız'}), 500
+
+@app.route('/api/resend-verification', methods=['POST'])
+@rate_limit(max_requests=3, time_window=300)  # 3 istek / 5 dakika
+def resend_verification():
+    """Email doğrulama linkini tekrar gönder"""
+    try:
+        data = request.get_json()
+        email = sanitize_input(data.get('email', '').strip(), 100)
+        
+        if not email or not validate_email(email):
+            return jsonify({'error': 'Geçerli bir email giriniz'}), 400
+        
+        # Kullanıcıyı bul ve yeni token oluştur
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT id, username, email_verified FROM users WHERE email = ?', (email,))
+        user = cursor.fetchone()
+        
+        if not user:
+            # Güvenlik için aynı mesajı dön
+            return jsonify({'message': 'Eğer bu email kayıtlıysa, doğrulama linki gönderildi.'}), 200
+        
+        if user['email_verified']:
+            return jsonify({'message': 'Email zaten doğrulanmış.'}), 200
+        
+        # Yeni token oluştur
+        import secrets
+        new_token = secrets.token_urlsafe(32)
+        cursor.execute('UPDATE users SET verification_token = ? WHERE id = ?', (new_token, user['id']))
+        conn.commit()
+        conn.close()
+        
+        # Email gönder
+        send_verification_email(email, user['username'], new_token)
+        
+        return jsonify({'message': 'Doğrulama linki email adresinize gönderildi.'}), 200
+        
+    except Exception as e:
+        return jsonify({'error': 'İşlem başarısız'}), 500
 
 @app.route('/api/logout', methods=['POST'])
 @login_required
