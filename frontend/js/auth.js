@@ -1,6 +1,29 @@
 // Backend URL - config.js'den gelecek
 const getBackendURL = () => window.CONFIG?.BACKEND_URL || 'http://localhost:5000';
 
+// Success ve Error mesajları
+function showSuccess(message) {
+    const errorDiv = document.getElementById('errorMessage');
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        errorDiv.style.background = 'rgba(16, 185, 129, 0.1)';
+        errorDiv.style.borderColor = '#10b981';
+        errorDiv.style.color = '#10b981';
+    }
+}
+
+function showError(message) {
+    const errorDiv = document.getElementById('errorMessage');
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        errorDiv.style.background = 'rgba(239, 68, 68, 0.1)';
+        errorDiv.style.borderColor = '#ef4444';
+        errorDiv.style.color = '#ef4444';
+    }
+}
+
 // Form switch fonksiyonu
 function switchForm(formType) {
     const loginForm = document.getElementById('loginForm');
@@ -32,17 +55,6 @@ function togglePassword(inputId) {
         button.classList.remove('fa-eye-slash');
         button.classList.add('fa-eye');
     }
-}
-
-// Hata mesajı göster
-function showError(message) {
-    const errorMessage = document.getElementById('errorMessage');
-    errorMessage.textContent = message;
-    errorMessage.classList.add('show');
-    
-    setTimeout(() => {
-        errorMessage.classList.remove('show');
-    }, 5000);
 }
 
 // Login
