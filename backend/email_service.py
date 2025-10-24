@@ -30,7 +30,7 @@ def send_verification_email(email: str, username: str, token: str) -> bool:
     Development: Console'a yaz
     Production: Resend veya SendGrid kullan
     """
-    verification_link = f"{FRONTEND_URL}/verify?token={token}"
+    verification_link = f"{FRONTEND_URL}/api/verify-email/{token}"
     
     if ENVIRONMENT == "development":
         # Development: Console'a yaz
@@ -67,7 +67,7 @@ def send_email_with_resend(email: str, username: str, token: str) -> bool:
         import resend
         
         resend.api_key = os.environ.get("RESEND_API_KEY")
-        verification_link = f"{FRONTEND_URL}/verify?token={token}"
+        verification_link = f"{FRONTEND_URL}/api/verify-email/{token}"
         
         resend.Emails.send({
             "from": "Pahiy AI <onboarding@resend.dev>",  # Resend test email
