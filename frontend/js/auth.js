@@ -1,5 +1,5 @@
 // Backend URL - config.js'den gelecek
-const BACKEND_URL = window.CONFIG.BACKEND_URL;
+const getBackendURL = () => window.CONFIG?.BACKEND_URL || 'http://localhost:5000';
 
 // Form switch fonksiyonu
 function switchForm(formType) {
@@ -63,7 +63,7 @@ async function handleLogin(event) {
     loginBtn.innerHTML = '<div class="spinner"></div> Giriş yapılıyor...';
     
     try {
-        const response = await fetch(`${BACKEND_URL}/api/login`, {
+        const response = await fetch(`${getBackendURL()}/api/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -160,7 +160,7 @@ async function handleRegister(event) {
     registerBtn.innerHTML = '<div class="spinner"></div> Kayıt yapılıyor...';
     
     try {
-        const response = await fetch(`${BACKEND_URL}/api/register`, {
+        const response = await fetch(`${getBackendURL()}/api/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const token = localStorage.getItem('auth_token');
     if (token) {
         // Token'ı doğrula
-        fetch(`${BACKEND_URL}/api/me`, {
+        fetch(`${getBackendURL()}/api/me`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }

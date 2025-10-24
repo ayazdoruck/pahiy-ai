@@ -1,5 +1,5 @@
 // Backend URL - config.js'den gelecek
-const BACKEND_URL = window.CONFIG.BACKEND_URL;
+const getBackendURL = () => window.CONFIG?.BACKEND_URL || 'http://localhost:5000';
 
 let currentUser = null;
 let currentChatId = null;
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // ================== AUTH ==================
 async function loadCurrentUser() {
     try {
-        const response = await fetch(`${BACKEND_URL}/api/me`, {
+        const response = await fetch(`${getBackendURL()}/api/me`, {
             headers: {
                 'Authorization': `Bearer ${authToken}`
             }
@@ -74,7 +74,7 @@ async function loadCurrentUser() {
 }
 
 function logout() {
-    fetch(`${BACKEND_URL}/api/logout`, {
+    fetch(`${getBackendURL()}/api/logout`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${authToken}`
@@ -94,7 +94,7 @@ function toggleUserMenu() {
 // ================== CHAT MANAGEMENT ==================
 async function loadChats() {
     try {
-        const response = await fetch(`${BACKEND_URL}/api/chats`, {
+        const response = await fetch(`${getBackendURL()}/api/chats`, {
             headers: {
                 'Authorization': `Bearer ${authToken}`
             }
@@ -192,7 +192,7 @@ async function loadChatMessages(chatId) {
     messagesContainer.innerHTML = '<div class="loading">Yükleniyor</div>';
 
     try {
-        const response = await fetch(`${BACKEND_URL}/api/chats/${chatId}`, {
+        const response = await fetch(`${getBackendURL()}/api/chats/${chatId}`, {
             headers: {
                 'Authorization': `Bearer ${authToken}`
             }
@@ -225,7 +225,7 @@ async function loadChatMessages(chatId) {
 
 async function createNewChat() {
     try {
-        const response = await fetch(`${BACKEND_URL}/api/chats`, {
+        const response = await fetch(`${getBackendURL()}/api/chats`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${authToken}`,
@@ -279,7 +279,7 @@ async function confirmDelete() {
     if (!chatToDelete) return;
 
     try {
-        const response = await fetch(`${BACKEND_URL}/api/chats/${chatToDelete}`, {
+        const response = await fetch(`${getBackendURL()}/api/chats/${chatToDelete}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${authToken}`
@@ -330,7 +330,7 @@ async function sendMessage() {
     sendBtn.disabled = true;
     
     try {
-        const response = await fetch(`${BACKEND_URL}/api/chat`, {
+        const response = await fetch(`${getBackendURL()}/api/chat`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${authToken}`,
@@ -478,7 +478,7 @@ async function handleChangePassword(event) {
     }
     
     try {
-        const response = await fetch(`${BACKEND_URL}/api/change-password`, {
+        const response = await fetch(`${getBackendURL()}/api/change-password`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${authToken}`,
