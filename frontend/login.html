@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pahiy AI - Giriş Yap</title>
+    <link rel="stylesheet" href="/css/login.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-box">
+            <div class="auth-header">
+                <h1 class="logo-text">Pahiy AI</h1>
+                <p class="logo-subtitle">made by @ayazdoruck</p>
+            </div>
+
+            <!-- Login Form -->
+            <div id="loginForm" class="auth-form active">
+                <h2>Giriş Yap</h2>
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="loginInput">Kullanıcı Adı veya Email</label>
+                        <input type="text" id="loginInput" required placeholder="kullaniciadi veya email@ornek.com" autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Şifre</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="loginPassword" required placeholder="••••••••" autocomplete="current-password">
+                            <button type="button" class="toggle-password" onclick="togglePassword('loginPassword')" tabindex="-1">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" class="auth-btn" id="loginBtn">
+                        <i class="fas fa-sign-in-alt"></i> Giriş Yap
+                    </button>
+                </form>
+                <p class="auth-switch">
+                    Hesabınız yok mu? <a href="#" onclick="switchForm('register')">Kayıt Ol</a>
+                </p>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" class="auth-form">
+                <h2>Kayıt Ol</h2>
+                <form onsubmit="handleRegister(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="registerFirstName">Ad *</label>
+                            <input type="text" id="registerFirstName" required placeholder="Ad" minlength="2" autocomplete="given-name">
+                        </div>
+                        <div class="form-group">
+                            <label for="registerLastName">Soyad *</label>
+                            <input type="text" id="registerLastName" required placeholder="Soyad" minlength="2" autocomplete="family-name">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerUsername">Kullanıcı Adı *</label>
+                        <input type="text" id="registerUsername" required placeholder="kullaniciadi" minlength="3" maxlength="20" pattern="[a-zA-Z0-9_]+" autocomplete="username">
+                        <small class="form-hint">3-20 karakter, sadece harf, rakam ve _</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerEmail">Email *</label>
+                        <input type="email" id="registerEmail" required placeholder="email@ornek.com" autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">Şifre *</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="registerPassword" required minlength="6" placeholder="••••••••" autocomplete="new-password">
+                            <button type="button" class="toggle-password" onclick="togglePassword('registerPassword')" tabindex="-1">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <small class="form-hint">En az 6 karakter</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPasswordConfirm">Şifre Tekrar *</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="registerPasswordConfirm" required minlength="6" placeholder="••••••••" autocomplete="new-password">
+                            <button type="button" class="toggle-password" onclick="togglePassword('registerPasswordConfirm')" tabindex="-1">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" class="auth-btn" id="registerBtn">
+                        <i class="fas fa-user-plus"></i> Kayıt Ol
+                    </button>
+                </form>
+                <p class="auth-switch">
+                    Zaten hesabınız var mı? <a href="#" onclick="switchForm('login')">Giriş Yap</a>
+                </p>
+            </div>
+
+            <div id="errorMessage" class="error-message"></div>
+        </div>
+
+        <div class="auth-bg">
+            <div class="bg-circle circle-1"></div>
+            <div class="bg-circle circle-2"></div>
+            <div class="bg-circle circle-3"></div>
+        </div>
+    </div>
+
+    <script src="/js/config.js"></script>
+    <script src="/js/auth.js"></script>
+</body>
+</html>
