@@ -9,7 +9,18 @@ import json
 # For now, just log emails (console-based verification)
 # In production, integrate with Resend (free 3000 emails/month)
 
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5000')
+# Railway'de otomatik URL alıyoruz
+RAILWAY_PUBLIC_DOMAIN = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '')
+RAILWAY_STATIC_URL = os.environ.get('RAILWAY_STATIC_URL', '')
+
+# Frontend URL'i belirle
+if RAILWAY_PUBLIC_DOMAIN:
+    FRONTEND_URL = f"https://{RAILWAY_PUBLIC_DOMAIN}"
+elif RAILWAY_STATIC_URL:
+    FRONTEND_URL = RAILWAY_STATIC_URL
+else:
+    FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5000')
+
 ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
 
 def send_verification_email(email: str, username: str, token: str) -> bool:
